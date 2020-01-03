@@ -45,6 +45,12 @@ io.on("connection", socket => {
         username: "Admin",
         ...generateMessage(`${user.username} has joined!`)
       });
+
+      // Tell everyone in the room a new user has entered
+      io.to(user.room).emit('roomData', {
+        room: user.room,
+        users: getUsersInRoom(user.room)
+      })
   });
 
   // The callback function is the acknowledgement callback. You can also pass args to the callback
@@ -72,6 +78,12 @@ io.on("connection", socket => {
         username: "Admin",
         ...generateMessage(`${user.username} has left`)
       });
+      
+      // Tell everyone a user has left
+      io.to(user.room).emit('roomData', {
+        room: user.room,
+        users: getUsersInRoom(user.room)
+      })
     }
   });
 

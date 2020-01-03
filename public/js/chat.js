@@ -5,11 +5,11 @@ const $messageFormInput = $form.querySelector("input");
 const $messageFormButton = $form.querySelector("button");
 const $sendLocation = document.querySelector("#send-location");
 const $messages = document.querySelector("#messages");
-
+const $sidebar = document.querySelector("#sidebar");
 // Templates
 const messageTemplate = document.querySelector("#message-template").innerHTML;
 const locationTemplate = document.querySelector("#location-template").innerHTML;
-
+const sidebarTemplate = document.querySelector("#sidebar-template").innerHTML;
 // Option
 const { username, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true
@@ -34,6 +34,11 @@ socket.on("sendLocationMessage", message => {
   $messages.insertAdjacentHTML("beforeend", html);
 });
 
+socket.on("roomData", ({ room, users }) => {
+  const html = Mustache.render(sidebarTemplate, { room, users });
+  $sidebar.innerHTML = html;
+});
+
 $form.addEventListener("submit", e => {
   e.preventDefault();
 
@@ -42,7 +47,7 @@ $form.addEventListener("submit", e => {
 
   const message = e.target.elements.message.value;
 
-  socket.emit("sendMessage", message, (message) => {
+  socket.emit("sendMessage", message, message => {
     // re-enable the form
     $messageFormButton.disabled = false;
     $messageFormInput.value = "";
@@ -61,16 +66,16 @@ $sendLocation.addEventListener("click", e => {
 
   navigator.geolocation.getCurrentPosition(position => {
     const { latitude, longitude } = position.coords;
-    socket.emit("sendLocation", { latitude, longitude }, (message) => {
+    socket.emit("sendLocation", { latitude, longitude }, message => {
       $sendLocation.disabled = false;
       console.log(message);
     });
   });
 });
 
-socket.emit("join", { username, room }, (error) => {
+socket.emit("join", { username, room }, error => {
   if (error) {
     alert(error);
-    location.href = '/';
+    location.href = "/";
   }
 });
