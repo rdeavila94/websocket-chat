@@ -3,6 +3,10 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 const Filter = require("bad-words");
+const {
+  generateMessage,
+  generateLocationMessage
+} = require("../src/utils/messages");
 
 const app = express();
 const server = http.createServer(app);
@@ -16,8 +20,8 @@ app.use(express.static(publicDirectoryPath));
 io.on("connection", socket => {
   console.log("New WebSocket connection");
 
-  socket.emit("message", "Welcome!");
-  socket.broadcast.emit("message", "A new user has joined!");
+  socket.emit("message", generateMessage("Welcome!"));
+  socket.broadcast.emit("message", generateMessage("A new user has joined!"));
 
   // The callback function is the acknowledgement callback. You can also pass args to the callback
   socket.on("sendMessage", (message, callback) => {
@@ -25,16 +29,21 @@ io.on("connection", socket => {
     if (filter.isProfane(message)) {
       return callback("Profanity is not allowed!");
     }
-    io.emit("message", message);
+    io.emit("message", generateMessage(message));
     callback();
   });
 
   socket.on("disconnect", () => {
-    io.emit("message", "A user has left!");
+    io.emit("message", generateMessage("A user has left!"));
   });
 
   socket.on("sendLocation", ({ latitude, longitude }, callback) => {
-    io.emit("sendLocationMessage", `https://google.com/maps?q=${longitude},${latitude}`);
+    io.emit(
+      "sendLocationMessage",
+      generateLocationMessage(
+        `https://google.com/maps?q=${longitude},${latitude}`
+      )
+    );
     callback();
   });
 });
