@@ -7,6 +7,12 @@ const {
   generateMessage,
   generateLocationMessage
 } = require("../src/utils/messages");
+const {
+  addUser,
+  getUser,
+  getUsersInRoom,
+  removeUser
+} = require("./utils/users");
 
 const app = express();
 const server = http.createServer(app);
@@ -21,13 +27,24 @@ io.on("connection", socket => {
   console.log("New WebSocket connection");
 
   socket.on("join", ({ username, room }, callback) => {
-    socket.join(room);
+    const { user, error } = addUser({ id: socket.id, username, room });
 
-    socket.emit("message", generateMessage("Welcome!"));
+    if (error) {
+      return callback(error);
+    }
+
+    socket.join(user.room);
+
+    socket.emit("message", {
+      username: "Admin",
+      ...generateMessage("Welcome!")
+    });
     socket.broadcast
-      .to(room)
-      .emit("message", generateMessage(`${username} has joined!`));
-    callback();
+      .to(user.room)
+      .emit("message", {
+        username: "Admin",
+        ...generateMessage(`${user.username} has joined!`)
+      });
   });
 
   // The callback function is the acknowledgement callback. You can also pass args to the callback
@@ -36,22 +53,40 @@ io.on("connection", socket => {
     if (filter.isProfane(message)) {
       return callback("Profanity is not allowed!");
     }
-    io.emit("message", generateMessage(message));
-    callback();
+    const user = getUser(socket.id);
+    if (!user) {
+      return callback("Message unable to be sent");
+    }
+    io.to(user.room).emit("message", {
+      username: user.username,
+      ...generateMessage(message)
+    });
+    callback("Message delivered");
   });
 
   socket.on("disconnect", () => {
-    io.emit("message", generateMessage("A user has left!"));
+    const user = removeUser(socket.id);
+
+    if (user) {
+      io.to(user.room).emit("message", {
+        username: "Admin",
+        ...generateMessage(`${user.username} has left`)
+      });
+    }
   });
 
   socket.on("sendLocation", ({ latitude, longitude }, callback) => {
-    io.emit(
-      "sendLocationMessage",
-      generateLocationMessage(
+    const user = getUser(socket.id);
+    if (!user) {
+      return callback("Location message unable to be sent");
+    }
+    io.to(user.room).emit("sendLocationMessage", {
+      username: user.username,
+      ...generateLocationMessage(
         `https://google.com/maps?q=${longitude},${latitude}`
       )
-    );
-    callback();
+    });
+    callback("Location shared!");
   });
 });
 

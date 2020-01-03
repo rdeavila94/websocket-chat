@@ -16,10 +16,11 @@ const { username, room } = Qs.parse(location.search, {
 });
 
 socket.on("message", message => {
-  console.log(message.text);
+  console.log(message);
   const html = Mustache.render(messageTemplate, {
     message: message.text,
-    createdAt: moment(message.createdAt).format("h:mm a")
+    createdAt: moment(message.createdAt).format("h:mm a"),
+    username: message.username
   });
   $messages.insertAdjacentHTML("beforeend", html);
 });
@@ -27,7 +28,8 @@ socket.on("message", message => {
 socket.on("sendLocationMessage", message => {
   const html = Mustache.render(locationTemplate, {
     url: message.url,
-    createdAt: moment(message.createdAt).format("h:mm a")
+    createdAt: moment(message.createdAt).format("h:mm a"),
+    username: message.username
   });
   $messages.insertAdjacentHTML("beforeend", html);
 });
@@ -40,15 +42,12 @@ $form.addEventListener("submit", e => {
 
   const message = e.target.elements.message.value;
 
-  socket.emit("sendMessage", message, error => {
+  socket.emit("sendMessage", message, (message) => {
     // re-enable the form
     $messageFormButton.disabled = false;
     $messageFormInput.value = "";
     $messageFormInput.focus();
-    if (error) {
-      return console.log(error);
-    }
-    console.log("message delivered");
+    console.log(message);
   });
 });
 
@@ -62,13 +61,16 @@ $sendLocation.addEventListener("click", e => {
 
   navigator.geolocation.getCurrentPosition(position => {
     const { latitude, longitude } = position.coords;
-    socket.emit("sendLocation", { latitude, longitude }, () => {
+    socket.emit("sendLocation", { latitude, longitude }, (message) => {
       $sendLocation.disabled = false;
-      console.log("Location shared!");
+      console.log(message);
     });
   });
 });
 
-socket.emit("join", { username, room }, () => {
-  console.log("Room joined!");
+socket.emit("join", { username, room }, (error) => {
+  if (error) {
+    alert(error);
+    location.href = '/';
+  }
 });
