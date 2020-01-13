@@ -116,6 +116,7 @@ button:disabled {
 
 .message {
     margin-bottom: 16px;   
+    display: block;
 }
 
 .message__name {
@@ -180,4 +181,9 @@ button:disabled {
     list-style-type: none;
     font-weight: 300;
     padding: 12px 24px 0 24px;
+}
+
+.self {
+    float: right;
+    clear: both;
 }

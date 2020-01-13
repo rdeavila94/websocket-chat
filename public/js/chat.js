@@ -34,10 +34,13 @@ const autoscroll = () => {
 }
 
 socket.on("message", message => {
+  console.log(message);
+  const supplement = message.self ? ' self' : '';
   const html = Mustache.render(messageTemplate, {
     message: message.text,
     createdAt: moment(message.createdAt).format("h:mm a"),
-    username: message.username
+    username: message.username,
+    supplement
   });
   $messages.insertAdjacentHTML("beforeend", html);
   autoscroll();

@@ -63,8 +63,17 @@ io.on("connection", socket => {
     if (!user) {
       return callback("Message unable to be sent");
     }
-    io.to(user.room).emit("message", {
+    //Broadcast the message to everyone but yourself with the self value false
+    socket.broadcast.to(user.room).emit("message", {
       username: user.username,
+      self: false,
+      ...generateMessage(message)
+    });
+
+    //Emit the message back to yourself with the self value true
+    socket.emit("message", {
+      username: user.username,
+      self: true,
       ...generateMessage(message)
     });
     callback("Message delivered");
