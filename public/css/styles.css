@@ -93,7 +93,7 @@ button:disabled {
     height: 100vh;
     color: white;
     background: #333744;
-    width: 225px;
+    width: 20%;
     overflow-y: scroll
 }
 
@@ -104,6 +104,7 @@ button:disabled {
     display: flex;
     flex-direction: column;
     max-height: 100vh;
+    width: 80%;
 }
 
 .chat__messages {
@@ -116,6 +117,31 @@ button:disabled {
 
 .message {
     margin-bottom: 16px;   
+    display: block;
+    overflow: auto;
+}
+
+.message .message__content {
+    background-color: #80808036;
+}
+
+.message-self > * {
+    float: right;
+    clear: both;
+}
+
+.message-self .message__content {
+    background-color: #10ff0085;
+}
+
+.message__content {
+    display: inline-block;
+    padding: 3px 5px 3px 5px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.message__header {
     display: block;
 }
 
@@ -183,7 +209,3 @@ button:disabled {
     padding: 12px 24px 0 24px;
 }
 
-.self {
-    float: right;
-    clear: both;
-}

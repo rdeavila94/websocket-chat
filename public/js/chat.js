@@ -35,7 +35,7 @@ const autoscroll = () => {
 
 socket.on("message", message => {
   console.log(message);
-  const supplement = message.self ? ' self' : '';
+  const supplement = message.self ? ' message-self' : '';
   const html = Mustache.render(messageTemplate, {
     message: message.text,
     createdAt: moment(message.createdAt).format("h:mm a"),
